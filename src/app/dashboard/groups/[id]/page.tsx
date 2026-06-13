@@ -7,7 +7,9 @@ import { RemoveMemberButton } from "@/components/groups/RemoveMemberButton";
 import { AddExpenseModal } from "@/components/expenses/AddExpenseModal";
 import { AddSettlementModal } from "@/components/expenses/AddSettlementModal";
 import Link from "next/link";
-import { ArrowLeft, User, Calendar, Settings } from "lucide-react";
+import { ArrowLeft, User, Calendar, Settings, DollarSign, ArrowRight, CheckCircle } from "lucide-react";
+import { calculateBalances, calculateSuggestedSettlements } from "@/lib/balanceEngine";
+import { Decimal } from "decimal.js";
 
 const prisma = new PrismaClient();
 
@@ -20,7 +22,11 @@ export default async function GroupDetailPage({ params }: { params: { id: string
     include: {
       memberships: {
         orderBy: { join_date: 'asc' }
-      }
+      },
+      expenses: {
+        include: { splits: true }
+      },
+      settlements: true
     }
   });
 
@@ -29,6 +35,28 @@ export default async function GroupDetailPage({ params }: { params: { id: string
   // Verify access
   const hasAccess = group.memberships.some(m => m.user_id === session.user?.id);
   if (!hasAccess) redirect("/dashboard");
+
+  // Calculate Balances
+  const rawExpenses = group.expenses.map(e => ({
+    paid_by_member_id: e.paid_by_member_id,
+    amount_base: e.amount_base as unknown as Decimal,
+    splits: e.splits.map(s => ({
+      member_id: s.member_id,
+      final_owed_amount: s.final_owed_amount as unknown as Decimal
+    }))
+  }));
+
+  const rawSettlements = group.settlements.map(s => ({
+    from_member_id: s.from_member_id,
+    to_member_id: s.to_member_id,
+    amount_base: s.amount_base as unknown as Decimal
+  }));
+
+  const balances = calculateBalances(rawExpenses, rawSettlements);
+  const suggestions = calculateSuggestedSettlements(balances);
+  
+  // Helper to get member name
+  const getMemberName = (id: string) => group.memberships.find(m => m.id === id)?.member_name || "Unknown";
 
   return (
     <div>
@@ -101,20 +129,70 @@ export default async function GroupDetailPage({ params }: { params: { id: string
           </div>
         </div>
 
-        {/* Placeholder for Expenses/Balances */}
+        {/* Balances & Suggestions */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Balances</h2>
-            <div className="text-center py-8 text-gray-500">
-              Balance calculation engine not yet implemented.
-            </div>
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Overall Balances</h2>
+            {Object.keys(balances).length === 0 ? (
+              <div className="text-center py-8 text-gray-500">No expenses recorded yet.</div>
+            ) : (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {Object.entries(balances).map(([memberId, balance]) => (
+                  <li key={memberId} className="py-3 flex justify-between items-center">
+                    <span className="font-medium text-gray-900 dark:text-white">{getMemberName(memberId)}</span>
+                    <span className={`font-semibold ${balance.isPositive() ? 'text-green-600' : balance.isNegative() ? 'text-red-600' : 'text-gray-500'}`}>
+                      {balance.isPositive() ? 'Gets back' : balance.isNegative() ? 'Owes' : 'Settled'} {balance.abs().toFixed(2)} {group.base_currency}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Suggested Settlements</h2>
+            {suggestions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 flex flex-col items-center">
+                <CheckCircle className="h-10 w-10 text-green-500 mb-2" />
+                <p>Everyone is fully settled up!</p>
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {suggestions.map((s, idx) => (
+                  <li key={idx} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                    <div className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
+                      <span>{getMemberName(s.from_member_id)}</span>
+                      <ArrowRight className="mx-3 h-4 w-4 text-gray-400" />
+                      <span>{getMemberName(s.to_member_id)}</span>
+                    </div>
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {s.amount.toFixed(2)} {group.base_currency}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Recent Expenses</h2>
-            <div className="text-center py-8 text-gray-500">
-              Expense tracking not yet implemented.
-            </div>
+            {group.expenses.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">No expenses recorded yet.</div>
+            ) : (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {group.expenses.slice(0, 5).map(e => (
+                  <li key={e.id} className="py-3 flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{e.description}</p>
+                      <p className="text-xs text-gray-500">Paid by {getMemberName(e.paid_by_member_id)} on {e.expense_date.toLocaleDateString()}</p>
+                    </div>
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {e.amount_original.toString()} {e.currency_original}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>
