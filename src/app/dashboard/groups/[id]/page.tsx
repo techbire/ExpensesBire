@@ -42,6 +42,9 @@ export default async function GroupDetailPage({ params }: { params: { id: string
             <p className="text-sm text-gray-500 mt-1">Base Currency: {group.base_currency}</p>
           </div>
           <div className="flex space-x-3">
+            <Link href={`/dashboard/groups/${group.id}/import`} className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+              Import CSV
+            </Link>
             <AddExpenseModal groupId={group.id} members={group.memberships} baseCurrency={group.base_currency} />
             <AddSettlementModal groupId={group.id} members={group.memberships} baseCurrency={group.base_currency} />
             <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600">
