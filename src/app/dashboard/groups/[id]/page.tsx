@@ -4,6 +4,8 @@ import { PrismaClient } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { AddMemberModal } from "@/components/groups/AddMemberModal";
 import { RemoveMemberButton } from "@/components/groups/RemoveMemberButton";
+import { AddExpenseModal } from "@/components/expenses/AddExpenseModal";
+import { AddSettlementModal } from "@/components/expenses/AddSettlementModal";
 import Link from "next/link";
 import { ArrowLeft, User, Calendar, Settings } from "lucide-react";
 
@@ -40,6 +42,8 @@ export default async function GroupDetailPage({ params }: { params: { id: string
             <p className="text-sm text-gray-500 mt-1">Base Currency: {group.base_currency}</p>
           </div>
           <div className="flex space-x-3">
+            <AddExpenseModal groupId={group.id} members={group.memberships} baseCurrency={group.base_currency} />
+            <AddSettlementModal groupId={group.id} members={group.memberships} baseCurrency={group.base_currency} />
             <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600">
               <Settings className="-ml-1 mr-2 h-4 w-4" />
               Settings
