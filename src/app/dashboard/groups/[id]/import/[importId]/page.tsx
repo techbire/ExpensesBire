@@ -8,12 +8,13 @@ import { RawExpenseRow } from "@/lib/anomalyEngine";
 
 const prisma = new PrismaClient();
 
-export default async function ImportReviewPage({ params }: { params: { id: string, importId: string } }) {
+export default async function ImportReviewPage({ params }: { params: Promise<{ id: string, importId: string }> }) {
+  const { id, importId } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/auth/signin");
 
   const importJob = await prisma.import.findUnique({
-    where: { id: params.importId },
+    where: { id: importId },
     include: {
       rows: {
         include: { anomalies: true },
@@ -22,17 +23,25 @@ export default async function ImportReviewPage({ params }: { params: { id: strin
     }
   });
 
-  if (!importJob) redirect(`/dashboard/groups/${params.id}`);
+  if (!importJob) redirect(`/dashboard/groups/${id}`);
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
       <div className="flex justify-between items-center mb-6">
-        <Link href={`/dashboard/groups/${params.id}`} className="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+        <Link href={`/dashboard/groups/${id}`} className="text-sm text-blue-600 hover:text-blue-800 flex items-center">
           <ArrowLeft className="h-4 w-4 mr-1" /> Back to Group
         </Link>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium">
-          Commit Valid Rows
-        </button>
+        <form action={async () => {
+          "use server";
+          const { commitValidRows } = await import("@/app/actions/importActions");
+          await commitValidRows(importId, id);
+          const { redirect } = await import("next/navigation");
+          redirect(`/dashboard/groups/${id}`);
+        }}>
+          <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium">
+            Commit Valid Rows
+          </button>
+        </form>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
@@ -95,9 +104,26 @@ export default async function ImportReviewPage({ params }: { params: { id: strin
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {row.parsed_status === "ANOMALY" ? (
-                        <button className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">Resolve</button>
-                      ) : (
-                        <button className="text-gray-400 hover:text-red-600 ml-4">Ignore</button>
+                        <form action={async () => {
+                          "use server";
+                          const { updateRowStatus } = await import("@/app/actions/importActions");
+                          const { revalidatePath } = await import("next/cache");
+                          await updateRowStatus(row.id, "RESOLVE");
+                          revalidatePath(`/dashboard/groups/${id}/import/${importId}`);
+                        }} className="inline">
+                          <button type="submit" className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">Resolve</button>
+                        </form>
+                      ) : null}
+                      {row.parsed_status !== "IGNORED" && (
+                        <form action={async () => {
+                          "use server";
+                          const { updateRowStatus } = await import("@/app/actions/importActions");
+                          const { revalidatePath } = await import("next/cache");
+                          await updateRowStatus(row.id, "IGNORE");
+                          revalidatePath(`/dashboard/groups/${id}/import/${importId}`);
+                        }} className="inline ml-4">
+                          <button type="submit" className="text-gray-400 hover:text-red-600">Ignore</button>
+                        </form>
                       )}
                     </td>
                   </tr>

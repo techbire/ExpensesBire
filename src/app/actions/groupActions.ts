@@ -38,3 +38,30 @@ export async function createGroup(formData: FormData) {
   revalidatePath("/dashboard");
   return { id: group.id };
 }
+
+export async function editGroup(groupId: string, formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const name = formData.get("name") as string;
+  if (!name) throw new Error("Group name is required");
+
+  // Verify access
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+    include: { memberships: true }
+  });
+  if (!group) throw new Error("Group not found");
+  
+  const hasAccess = group.memberships.some(m => m.user_id === session.user?.id);
+  if (!hasAccess) throw new Error("Unauthorized");
+
+  await prisma.group.update({
+    where: { id: groupId },
+    data: { name }
+  });
+
+  revalidatePath(`/dashboard/groups/${groupId}`);
+  revalidatePath("/dashboard");
+  return { success: true };
+}

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { processCsvImport } from "@/app/actions/importActions";
 import { UploadCloud, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default function ImportPage({ params }: { params: { id: string } }) {
+export default function ImportPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -20,10 +21,10 @@ export default function ImportPage({ params }: { params: { id: string } }) {
 
     try {
       const text = await file.text();
-      const res = await processCsvImport(params.id, text, file.name);
+      const res = await processCsvImport(id, text, file.name);
       
       if (res.success) {
-        router.push(`/dashboard/groups/${params.id}/import/${res.importId}`);
+        router.push(`/dashboard/groups/${id}/import/${res.importId}`);
       }
     } catch (err) {
       console.error(err);
@@ -35,7 +36,7 @@ export default function ImportPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="max-w-3xl mx-auto mt-8">
-      <Link href={`/dashboard/groups/${params.id}`} className="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6">
+      <Link href={`/dashboard/groups/${id}`} className="text-sm text-blue-600 hover:text-blue-800 flex items-center mb-6">
         <ArrowLeft className="h-4 w-4 mr-1" /> Back to Group
       </Link>
       

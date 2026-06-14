@@ -111,7 +111,9 @@ export function calculateShareSplit(totalAmountBase: Decimal, splits: SplitInput
   });
 
   if (shareSum.isZero()) {
-    throw new Error("Total shares cannot be zero");
+    // Fallback to equal shares if sum is 0 to prevent crash
+    shareSum = new Decimal(parsedSplits.length || 1);
+    parsedSplits.forEach(s => s.weight = new Decimal(1));
   }
 
   let calculatedSum = new Decimal(0);

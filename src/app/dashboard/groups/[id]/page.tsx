@@ -6,19 +6,23 @@ import { AddMemberModal } from "@/components/groups/AddMemberModal";
 import { RemoveMemberButton } from "@/components/groups/RemoveMemberButton";
 import { AddExpenseModal } from "@/components/expenses/AddExpenseModal";
 import { AddSettlementModal } from "@/components/expenses/AddSettlementModal";
+import { SettingsModal } from "@/components/groups/SettingsModal";
 import Link from "next/link";
 import { ArrowLeft, User, Calendar, Settings, ArrowRight, CheckCircle } from "lucide-react";
 import { calculateBalances, calculateSuggestedSettlements } from "@/lib/balanceEngine";
 import { Decimal } from "decimal.js";
 
+export const dynamic = "force-dynamic";
+
 const prisma = new PrismaClient();
 
-export default async function GroupDetailPage({ params }: { params: { id: string } }) {
+export default async function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/auth/signin");
 
   const group = await prisma.group.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       memberships: {
         orderBy: { join_date: 'asc' }
@@ -75,10 +79,7 @@ export default async function GroupDetailPage({ params }: { params: { id: string
             </Link>
             <AddExpenseModal groupId={group.id} members={group.memberships} baseCurrency={group.base_currency} />
             <AddSettlementModal groupId={group.id} members={group.memberships} baseCurrency={group.base_currency} />
-            <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600">
-              <Settings className="-ml-1 mr-2 h-4 w-4" />
-              Settings
-            </button>
+            <SettingsModal groupId={group.id} currentName={group.name} />
           </div>
         </div>
       </div>
