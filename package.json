@@ -28,7 +28,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@rolldown/binding-win32-x64-msvc": "^1.1.1",
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
     "@types/jest": "^30.0.0",
@@ -41,7 +40,6 @@
     "jest": "^30.4.2",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.11",
-    "typescript": "^5",
-    "vitest": "^4.1.8"
+    "typescript": "^5"
   }
 }
