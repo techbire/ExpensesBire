@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shared Expenses & Reconciliation App
 
-## Getting Started
+This is a premium, full-stack Next.js 15 Web Application designed to manage and reconcile shared household and trip expenses for small groups. It handles complex split types (Equal, Unequal, Percentage, and Shares), supports multiple currencies with exchange rate overrides, and features an interactive CSV import review system to flag and resolve anomalies.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Key Features
+- **Deterministic Math Engine**: High-precision calculations powered by `Decimal.js` to eliminate floating-point rounding issues.
+- **Traceable Ledger**: Every member's balance is traceable back to the source expenses, splits, and settlements.
+- **Adversarial CSV Importer**: Custom parsing and rules engine that flags:
+  - Missing payers and missing currencies.
+  - Zero/Negative amounts (possible refunds).
+  - Ambiguous date formats.
+  - Casing mismatches and member aliases (e.g., `Priya S` vs `Priya`).
+  - Active timeline membership violations.
+  - Duplicate and near-duplicate entries.
+- **Authentication**: Secure registration and login module powered by NextAuth.js.
+- **Settlement Recommendations**: Greedy matching algorithm suggesting the minimal number of transactions required to settle all debts.
+
+---
+
+## 🛠️ Technology Stack
+- **Framework**: Next.js 15 (App Router with Server Actions & API routes)
+- **Language**: TypeScript
+- **Database & ORM**: PostgreSQL via Neon DB & Prisma ORM
+- **Styling**: Tailwind CSS
+- **Testing**: Jest & `ts-jest` for native TypeScript unit testing
+
+---
+
+## ⚙️ Environment Variables
+Create a `.env` file in the root directory and configure the following variables:
+
+```env
+# Database Connection (Neon PostgreSQL)
+DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+
+# NextAuth Configuration
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-nextauth-secret-key"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏃 Local Run & Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Install Dependencies
+```bash
+npm install
+```
 
-## Learn More
+### 2. Database Migration & Client Generation
+Ensure your `.env` contains a valid `DATABASE_URL` link, then run:
+```bash
+npx prisma db push
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🧪 Testing
 
-## Deploy on Vercel
+We have built a unit test suite to verify the core engines:
+- **Split Engine**: Validates split calculations and remainder balance adjustments.
+- **Balance Engine**: Verifies credits/debits calculation and debt minimization recommendations.
+- **Anomaly Engine**: Checks detection of various CSV import issues.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+To run the test suite:
+```bash
+npm run test
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## ☁️ Deployment on Vercel
+
+1. **Push your code** to a GitHub repository.
+2. **Import the project** in the Vercel Dashboard.
+3. Configure your production **Environment Variables** (`DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`) in Vercel settings.
+4. **Deploy**. Next.js App Router projects build natively on Vercel.
+
+---
+
+## 🤖 AI Tools Used
+- **Gemini 3.5 Flash**: Assisting in the engineering implementation, test drafting, and documentation.
+- For a comprehensive log of AI prompts, wrong outputs, and detections, refer to [AI_USAGE.md](file:///c:/Users/anshg/OneDrive/Desktop/ExpensesBire/AI_USAGE.md).

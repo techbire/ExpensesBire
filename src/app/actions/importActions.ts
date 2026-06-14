@@ -2,7 +2,7 @@
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { PrismaClient, ImportStatus } from "@prisma/client";
+import { PrismaClient, ImportStatus, Prisma } from "@prisma/client";
 import { detectAnomalies, RawExpenseRow } from "@/lib/anomalyEngine";
 import { revalidatePath } from "next/cache";
 
@@ -58,7 +58,7 @@ export async function processCsvImport(groupId: string, fileContent: string, fil
         data: {
           import_id: imp.id,
           row_number: i + 2, // 1-indexed, skipping header
-          raw_payload: row as any,
+          raw_payload: row as unknown as Prisma.InputJsonValue,
           parsed_status: parsedStatus,
         }
       });

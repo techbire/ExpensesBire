@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { RawExpenseRow } from "@/lib/anomalyEngine";
 
 const prisma = new PrismaClient();
 
@@ -70,7 +71,7 @@ export default async function ImportReviewPage({ params }: { params: { id: strin
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {importJob.rows.map((row) => {
-                const payload: any = row.raw_payload;
+                const payload = row.raw_payload as unknown as RawExpenseRow;
                 return (
                   <tr key={row.id} className={row.parsed_status === "ANOMALY" ? "bg-amber-50 dark:bg-amber-900/10" : ""}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">

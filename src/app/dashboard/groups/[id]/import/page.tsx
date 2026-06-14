@@ -25,9 +25,9 @@ export default function ImportPage({ params }: { params: { id: string } }) {
       if (res.success) {
         router.push(`/dashboard/groups/${params.id}/import/${res.importId}`);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to process CSV file");
+      setError(err instanceof Error ? err.message : "Failed to process CSV file");
     } finally {
       setIsPending(false);
     }

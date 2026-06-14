@@ -10,7 +10,7 @@ type Member = { id: string; member_name: string; status: string };
 export function AddExpenseModal({ groupId, members, baseCurrency }: { groupId: string, members: Member[], baseCurrency: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const [splitType, setSplitType] = useState<SplitType>(SplitType.EQUAL);
+  const splitType = SplitType.EQUAL;
 
   // Default all active members to be included in EQUAL split
   const activeMembers = members.filter(m => m.status === "ACTIVE");

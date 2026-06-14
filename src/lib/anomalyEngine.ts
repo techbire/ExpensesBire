@@ -19,7 +19,7 @@ export type Anomaly = {
   detected_rule: string;
 };
 
-export function detectAnomalies(row: RawExpenseRow, groupBaseCurrency: string, groupMembers: string[]): Anomaly[] {
+export function detectAnomalies(row: RawExpenseRow, groupBaseCurrency: string, _groupMembers: string[]): Anomaly[] {
   const anomalies: Anomaly[] = [];
 
   // 1. Missing Data
@@ -102,8 +102,7 @@ export function detectAnomalies(row: RawExpenseRow, groupBaseCurrency: string, g
   }
   
   const descLower = row.description?.toLowerCase() || "";
-  const notesLower = row.notes?.toLowerCase() || "";
-  if (descLower.includes("paid back") || descLower.includes("settle") || descLower.includes("deposit share")) {
+  if (descLower.includes("paid back") || (descLower.includes("paid") && descLower.includes("back")) || descLower.includes("settle") || descLower.includes("deposit share")) {
     anomalies.push({
       anomaly_type: AnomalyType.SETTLEMENT,
       severity: Severity.WARNING,

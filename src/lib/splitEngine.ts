@@ -78,7 +78,7 @@ export function calculatePercentageSplit(totalAmountBase: Decimal, splits: Split
   // Validations like ensuring percentageSum == 100 should happen before this engine is called
   
   let calculatedSum = new Decimal(0);
-  const results = parsedSplits.map((s, index) => {
+  const results = parsedSplits.map((s) => {
     const amount = totalAmountBase.times(s.pct).dividedBy(100).toDecimalPlaces(4);
     calculatedSum = calculatedSum.plus(amount);
     return {
@@ -115,7 +115,7 @@ export function calculateShareSplit(totalAmountBase: Decimal, splits: SplitInput
   }
 
   let calculatedSum = new Decimal(0);
-  const results = parsedSplits.map((s, index) => {
+  const results = parsedSplits.map((s) => {
     const amount = totalAmountBase.times(s.weight).dividedBy(shareSum).toDecimalPlaces(4);
     calculatedSum = calculatedSum.plus(amount);
     return {

@@ -7,7 +7,7 @@ import { RemoveMemberButton } from "@/components/groups/RemoveMemberButton";
 import { AddExpenseModal } from "@/components/expenses/AddExpenseModal";
 import { AddSettlementModal } from "@/components/expenses/AddSettlementModal";
 import Link from "next/link";
-import { ArrowLeft, User, Calendar, Settings, DollarSign, ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowLeft, User, Calendar, Settings, ArrowRight, CheckCircle } from "lucide-react";
 import { calculateBalances, calculateSuggestedSettlements } from "@/lib/balanceEngine";
 import { Decimal } from "decimal.js";
 
